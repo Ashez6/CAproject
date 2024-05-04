@@ -13,7 +13,7 @@ int zeroFlag=0;
 
 void decode() {
         
-        int opcode = 0;  
+        unsigned int opcode = 0;  
         int rs = 0;      
         int rt = 0;      
         int rd = 0;      
@@ -25,15 +25,14 @@ void decode() {
         int valueRT = 0;
         
         opcode=instruction & 0b11110000000000000000000000000000;
-        opcode=opcode>>26;
+        opcode=opcode>>28;
         rs = instruction & 0b00001111100000000000000000000000;
-        rs = rs>>21;
+        rs = rs>>23;
         rt = instruction & 0b00000000011111000000000000000000;
-        rt=rt>>16;
+        rt=rt>>18;
         rd = instruction & 0b00000000000000111110000000000000;
-        rd=rd>>11;
+        rd=rd>>13;
         shamt = instruction & 0b00000000000000000001111111111111;
-        shamt=shamt>>6;
         imm= instruction & 0b00000000000000111111111111111111;
         address = instruction & 0b00001111111111111111111111111111;
 
@@ -110,7 +109,6 @@ int LineToBinary(char* line){
     char* token=strtok(line," ");
     int b=0;
     int insnum=0;
-    printf("token : %s\n",token);
     if(strcmp(token,"ADD")==0 ){
         insnum=0;
         b=0b00000000000000000000000000000000;
@@ -163,7 +161,6 @@ int LineToBinary(char* line){
     int imm=0;
     int shamt=0;
     int address=0;
-    printf("insnum=%i\n",insnum);
     if(insnum==0 || insnum==1){
         token=strtok(NULL," ");
         char* c=token;
@@ -199,39 +196,27 @@ int LineToBinary(char* line){
         b=b | rs | imm | rd;
     }
     else if(insnum==8 || insnum==9 ){
-        int count=1;
-        while(token!=NULL){
-            token=strtok(NULL," ");
-            char* c=token;
-            if(count==1) {
-                c++;
-                rd= atoi(c); 
-                count++;}
-            else if(count==2) {
-                c++;
-                rs= atoi(c); 
-                count++;}
-            else if(count==3) {
-                shamt= atoi(c);  
-                count++;}
-        }
+        token=strtok(NULL," ");
+        char* c=token;
+        c++;
+        rd= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        c++;
+        rs= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        shamt= atoi(c);
         rs=rs<<23;
         rd=rd<<18;
         b=b | rs | shamt | rd;
     }
     else{
-        while(token!=NULL){
-            printf("dakhalt tany\n");
-            token=strtok(NULL," ");
-            char* c=token;
-            printf("%s\n",c);
-            address= atoi(c); 
-            printf("count111111111\n");
-        }
+        token=strtok(NULL," ");
+        char* c=token;
         b= b | address;
-        printf("count1");
+        address= atoi(c); 
     }
-    printf("khalast\n");
     return b;
     
 }
@@ -245,13 +230,9 @@ int loadInstToMemory(char* fileName){
         printf("Error opening file \n");
         return 1;
     }
-    printf("hi\n");
-    int memloc=0;
-    printf("hi\n");
     while(fgets(line,sizeof(line),txtfile)!=NULL){
-        printf("hi\n");
-        memory[memloc]= LineToBinary(line);
-        memloc++;
+        memory[NumberofInstructions]= LineToBinary(line);
+        NumberofInstructions++;
     }
     
     fclose(txtfile);
@@ -264,13 +245,13 @@ int main(){
         return 1;
     }
 
-    // for(int i=0;i<NumberofInstructions;i++){
-    //     fetch();
-    //     decode();
-    //     // execute();
-    //     // memory();
-    //     // writeback();
-    //     //cycle++
-    // }
+    for(int i=0;i<NumberofInstructions;i++){
+        fetch();
+        decode();
+        // execute();
+        // memory();
+        // writeback();
+        //cycle++
+    }
 }
 
