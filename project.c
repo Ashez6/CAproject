@@ -1,12 +1,12 @@
-static int R0=0;    // zero register 
-int* memory;
-int registerFile [31] ; //31 gprs
+// const int R0=0;    // zero register 
+int memory[2048];
+int registerFile [32] ; //31 gprs
 int NumberofInstructions; // number of instructions in memory
 int pc = 0;
 int instruction;   //instruction fetched from memory
+int zeroFlag=0;
 
-
-void decode(long instruction) {
+void decode() {
         
         int opcode = 0;  // bits31:26
         int rs = 0;      // bits25:21
@@ -58,7 +58,7 @@ void decode(long instruction) {
 void fetch() {
         
         for(int i=0;i<NumberofInstructions;i++){
-         //   instruction=instructionMemory[pc];
+           instruction=memory[pc];
             pc++;
         }
              
@@ -69,47 +69,42 @@ void fetch() {
 
 
 
-int zeroFlag=0;
+
 int ALU(int operandA, int operandB, int operation) {
     int output = 0;
     zeroFlag = 0;
 
-   
-if(operation==0){
-output= operandA & operandB;
+    if(operation==0){
+        output= operandA + operandB;
+    }
+    else if (operation==1) {
+        output=operandA - operandB;
+    }
+    else if (operation==2) {
+        output=operandA * operandB;
+    }
+    else if (operation==3) {
+        output=operandA & operandB;
+    }
+    else if (operation==4)  {
+        output=operandA | operandB;
+    } 
+    else if (operation==5)  {
+        output= operandA<<operandB; //A is reg B is shamt
+    } 
+    else {
+        output=operandA >> operandB; //A is reg B is shamt
+    } 
 
-}
-else if (operation==1) {
-output=operandA | operandB;
+    if (output==0)
+        zeroFlag=1;
 
+        printf("Operation = %d\n", operation);
+        printf("First Operand = %d\n", operandA);
+        printf("Second Operand = %d\n", operandB);
+        printf("Result = %d\n", output);
+        printf("Zero Flag = %d\n", zeroFlag);
 
-}
-else if (operation==2) {
-output=operandA + operandB;
-
-}
-else if (operation==3) {
-output=operandA - operandB;
-
-}
-else if (operation==4)  {
-    if(operandA<operandB)
-    output=1;
-} 
-else{
-output= ~(operandA | operandB);
-
-}
-
-if (output==0)
-   zeroFlag=1;
-
-    printf("Operation = %d\n", operation);
-    printf("First Operand = %d\n", operandA);
-    printf("Second Operand = %d\n", operandB);
-    printf("Result = %d\n", output);
-    printf("Zero Flag = %d\n", zeroFlag);
-
-    return output;
-}
+        return output;
+    }
 
