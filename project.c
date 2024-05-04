@@ -10,16 +10,15 @@ int pc = 0;
 int instruction;   //instruction fetched from memory
 int zeroFlag=0;
 
+unsigned int opcode = 0;  
+int rs = 0;      
+int rt = 0;      
+int rd = 0;      
+int shamt = 0;   
+int imm = 0;
+int address = 0;
 
 void decode() {
-        
-        unsigned int opcode = 0;  
-        int rs = 0;      
-        int rt = 0;      
-        int rd = 0;      
-        int shamt = 0;   
-        int imm = 0;     
-        int address = 0; 
         
         int valueRS = 0;
         int valueRT = 0;
@@ -35,10 +34,6 @@ void decode() {
         shamt = instruction & 0b00000000000000000001111111111111;
         imm= instruction & 0b00000000000000111111111111111111;
         address = instruction & 0b00001111111111111111111111111111;
-
-        valueRS= registerFile[rs];
-        valueRT= registerFile[rt];
-
         
         // Printings
         
@@ -50,15 +45,52 @@ void decode() {
 		printf("shift amount = %i\n",shamt);
         printf("immediate = %i\n",imm);
 		printf("address = %i\n",address);
-		printf("value[rs] = %i\n",valueRS);
-		printf("value[rt] = %i\n",valueRT);
 		printf("---------- \n");
-                  
+        
 }
 
 void fetch() {
     instruction=memory[pc];
     pc++;
+}
+
+void execute(){
+    if(opcode==0){
+
+    }
+    else if(opcode==1){
+
+    }
+    else if(opcode==2){
+        
+    }
+    else if(opcode==3){
+        
+    }
+    else if(opcode==4){
+        
+    }
+    else if(opcode==5){
+        
+    }
+    else if(opcode==6){
+        
+    }
+    else if(opcode==7){
+        
+    }
+    else if(opcode==8){
+        
+    }
+    else if(opcode==9){
+        
+    }
+    else if(opcode==10){
+        
+    }
+    else{
+        
+    }
 }
 
 
@@ -155,67 +187,67 @@ int LineToBinary(char* line){
         insnum=11;
         b=0b10110000000000000000000000000000;
     }
-    int rs=0;
-    int rt=0;
-    int rd=0;
-    int imm=0;
-    int shamt=0;
-    int address=0;
+    int rs1=0;
+    int rt1=0;
+    int rd1=0;
+    int imm1=0;
+    int shamt1=0;
+    int address1=0;
     if(insnum==0 || insnum==1){
         token=strtok(NULL," ");
         char* c=token;
         c++;
-        rd= atoi(c); 
+        rd1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
-        rs= atoi(c); 
+        rs1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
-        rt= atoi(c);
-        rs=rs<<23;
-        rt=rt<<18;
-        rd=rd<<13;
-        b=b | rs | rt | rd;
+        rt1= atoi(c);
+        rs1=rs1<<23;
+        rt1=rt1<<18;
+        rd1=rd1<<13;
+        b=b | rs1 | rt1 | rd1;
     }
     else if(insnum==2 || insnum==3 || insnum==4 || insnum==5 || insnum==6 || insnum==10 || insnum==11){
         token=strtok(NULL," ");
         char* c=token;
         c++;
-        rd= atoi(c); 
+        rd1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
-        rs= atoi(c); 
+        rs1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
-        imm= atoi(c);
-        rs=rs<<23;
-        rd=rd<<18;
-        b=b | rs | imm | rd;
+        imm1= atoi(c);
+        rs1=rs1<<23;
+        rd1=rd1<<18;
+        b=b | rs1 | imm1 | rd1;
     }
     else if(insnum==8 || insnum==9 ){
         token=strtok(NULL," ");
         char* c=token;
         c++;
-        rd= atoi(c); 
+        rd1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
-        rs= atoi(c); 
+        rs1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
-        shamt= atoi(c);
-        rs=rs<<23;
-        rd=rd<<18;
-        b=b | rs | shamt | rd;
+        shamt1= atoi(c);
+        rs1=rs1<<23;
+        rd1=rd1<<18;
+        b=b | rs1 | shamt1 | rd1;
     }
     else{
         token=strtok(NULL," ");
         char* c=token;
-        b= b | address;
-        address= atoi(c); 
+        b= b | address1;
+        address1= atoi(c); 
     }
     return b;
     
