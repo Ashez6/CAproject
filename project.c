@@ -1,38 +1,41 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 // const int R0=0;    // zero register 
-int memory[2048];
+int* memory;
 int registerFile [32] ; //31 gprs
 int NumberofInstructions; // number of instructions in memory
 int pc = 0;
 int instruction;   //instruction fetched from memory
 int zeroFlag=0;
 
+
 void decode() {
         
-        int opcode = 0;  // bits31:26
-        int rs = 0;      // bits25:21
-        int rt = 0;      // bit20:16
-        int rd = 0;      // bits15:11
-        int shamt = 0;   // bits10:6
-        int funct = 0;   // bits5:0
-        int imm = 0;     // bits15:0
-        int address = 0; // bits25:0
+        int opcode = 0;  
+        int rs = 0;      
+        int rt = 0;      
+        int rd = 0;      
+        int shamt = 0;   
+        int imm = 0;     
+        int address = 0; 
         
         int valueRS = 0;
         int valueRT = 0;
         
-        opcode=instruction & 0b11111100000000000000000000000000;
+        opcode=instruction & 0b11110000000000000000000000000000;
         opcode=opcode>>26;
-        rs = instruction & 0b00000011111000000000000000000000;
+        rs = instruction & 0b00001111100000000000000000000000;
         rs = rs>>21;
-        rt = instruction & 0b00000000000111110000000000000000;
+        rt = instruction & 0b00000000011111000000000000000000;
         rt=rt>>16;
-        rd = instruction & 0b00000000000000001111100000000000;
+        rd = instruction & 0b00000000000000111110000000000000;
         rd=rd>>11;
-        shamt = instruction & 0b00000000000000000000011111000000;
+        shamt = instruction & 0b00000000000000000001111111111111;
         shamt=shamt>>6;
-        funct = instruction & 0b00000000000000000000000000111111;
-        imm= instruction & 0b00000000000000001111111111111111;
-        address = instruction & 0b00000011111111111111111111111111;
+        imm= instruction & 0b00000000000000111111111111111111;
+        address = instruction & 0b00001111111111111111111111111111;
 
         valueRS= registerFile[rs];
         valueRT= registerFile[rt];
@@ -46,8 +49,7 @@ void decode() {
 		printf("rt = %i\n",rt);
 		printf("rd = %i\n",rd);
 		printf("shift amount = %i\n",shamt);
-		printf("function = %i\n",funct);
-		printf("immediate = %i\n",imm);
+        printf("immediate = %i\n",imm);
 		printf("address = %i\n",address);
 		printf("value[rs] = %i\n",valueRS);
 		printf("value[rt] = %i\n",valueRT);
@@ -56,12 +58,8 @@ void decode() {
 }
 
 void fetch() {
-        
-        for(int i=0;i<NumberofInstructions;i++){
-           instruction=memory[pc];
-            pc++;
-        }
-             
+    instruction=memory[pc];
+    pc++;
 }
 
 
@@ -106,5 +104,173 @@ int ALU(int operandA, int operandB, int operation) {
         printf("Zero Flag = %d\n", zeroFlag);
 
         return output;
+}
+
+int LineToBinary(char* line){
+    char* token=strtok(line," ");
+    int b=0;
+    int insnum=0;
+    printf("token : %s\n",token);
+    if(strcmp(token,"ADD")==0 ){
+        insnum=0;
+        b=0b00000000000000000000000000000000;
+    }else if(strcmp(token,"SUB")==0){
+        insnum=1;
+        b=0b00010000000000000000000000000000;
+    }else if(strcmp(token,"MULI")==0){
+        insnum=2;
+        b=0b00100000000000000000000000000000;
     }
+    else if(strcmp(token,"ADDI")==0){
+        insnum=3;
+        b=0b00110000000000000000000000000000;
+    }
+    else if(strcmp(token,"BNE")==0){
+        insnum=4;
+        b=0b01000000000000000000000000000000;
+    }
+    else if(strcmp(token,"ANDI")==0){
+        insnum=5;
+        b=0b01010000000000000000000000000000;
+    }
+    else if(strcmp(token,"ORI")==0){
+        insnum=6;
+        b=0b01100000000000000000000000000000;
+    }
+    else if(strcmp(token,"J")==0){
+        insnum=7;
+        b=0b01110000000000000000000000000000;
+    }
+    else if(strcmp(token,"SLL")==0){
+        insnum=8;
+        b=0b10000000000000000000000000000000;
+    }
+    else if(strcmp(token,"SRL")==0){
+        insnum=9;
+        b=0b10010000000000000000000000000000;
+    }
+    else if(strcmp(token,"LW")==0){
+        insnum=10;
+        b=0b10100000000000000000000000000000;
+    }
+    else if(strcmp(token,"SW")==0){
+        insnum=11;
+        b=0b10110000000000000000000000000000;
+    }
+    int rs=0;
+    int rt=0;
+    int rd=0;
+    int imm=0;
+    int shamt=0;
+    int address=0;
+    printf("insnum=%i\n",insnum);
+    if(insnum==0 || insnum==1){
+        token=strtok(NULL," ");
+        char* c=token;
+        c++;
+        rd= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        c++;
+        rs= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        c++;
+        rt= atoi(c);
+        rs=rs<<23;
+        rt=rt<<18;
+        rd=rd<<13;
+        b=b | rs | rt | rd;
+    }
+    else if(insnum==2 || insnum==3 || insnum==4 || insnum==5 || insnum==6 || insnum==10 || insnum==11){
+        token=strtok(NULL," ");
+        char* c=token;
+        c++;
+        rd= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        c++;
+        rs= atoi(c); 
+        token=strtok(NULL," ");
+        c=token;
+        imm= atoi(c);
+        rs=rs<<23;
+        rd=rd<<18;
+        b=b | rs | imm | rd;
+    }
+    else if(insnum==8 || insnum==9 ){
+        int count=1;
+        while(token!=NULL){
+            token=strtok(NULL," ");
+            char* c=token;
+            if(count==1) {
+                c++;
+                rd= atoi(c); 
+                count++;}
+            else if(count==2) {
+                c++;
+                rs= atoi(c); 
+                count++;}
+            else if(count==3) {
+                shamt= atoi(c);  
+                count++;}
+        }
+        rs=rs<<23;
+        rd=rd<<18;
+        b=b | rs | shamt | rd;
+    }
+    else{
+        while(token!=NULL){
+            printf("dakhalt tany\n");
+            token=strtok(NULL," ");
+            char* c=token;
+            printf("%s\n",c);
+            address= atoi(c); 
+            printf("count111111111\n");
+        }
+        b= b | address;
+        printf("count1");
+    }
+    printf("khalast\n");
+    return b;
+    
+}
+
+int loadInstToMemory(char* fileName){
+    FILE * txtfile;
+    memory=(int*)malloc(2048*sizeof(int));
+    char line[1000];
+    txtfile=fopen(fileName,"r");
+    if(txtfile==NULL){
+        printf("Error opening file \n");
+        return 1;
+    }
+    printf("hi\n");
+    int memloc=0;
+    printf("hi\n");
+    while(fgets(line,sizeof(line),txtfile)!=NULL){
+        printf("hi\n");
+        memory[memloc]= LineToBinary(line);
+        memloc++;
+    }
+    
+    fclose(txtfile);
+    return 0;
+
+}
+
+int main(){
+    if(loadInstToMemory("mips.txt")){
+        return 1;
+    }
+
+    // for(int i=0;i<NumberofInstructions;i++){
+    //     fetch();
+    //     decode();
+    //     // execute();
+    //     // memory();
+    //     // writeback();
+    //     //cycle++
+    // }
+}
 
