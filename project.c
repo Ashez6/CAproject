@@ -18,10 +18,8 @@ int shamt = 0;
 int imm = 0;
 int address = 0;
 
+
 void decode() {
-        
-        int valueRS = 0;
-        int valueRT = 0;
         
         opcode=instruction & 0b11110000000000000000000000000000;
         opcode=opcode>>28;
@@ -56,28 +54,39 @@ void fetch() {
 
 void execute(){
     if(opcode==0){
-
+        int result= ALU(registerFile[rs],registerFile[rt],0);
+        registerFile[rd]=result;
     }
     else if(opcode==1){
-
+        int result= ALU(registerFile[rs],registerFile[rt],1);
+        registerFile[rd]=result;
     }
     else if(opcode==2){
-        
+        int result= ALU(registerFile[rs],imm,2);
+        registerFile[rd]=result;
     }
     else if(opcode==3){
-        
+        int result= ALU(registerFile[rs],imm,0);
+        registerFile[rd]=result;
     }
     else if(opcode==4){
-        
+        ALU(registerFile[rs],registerFile[rd],1);
+        if(zeroFlag!=1){
+            pc=pc+imm;
+        }
     }
     else if(opcode==5){
-        
+        int result= ALU(registerFile[rs],imm,3);
+        registerFile[rd]=result;
     }
     else if(opcode==6){
-        
+        int result= ALU(registerFile[rs],imm,4);
+        registerFile[rd]=result;
     }
     else if(opcode==7){
-        
+        address=address & 0b00001111111111111111111111111111;
+        int tmp=pc & 0b11110000000000000000000000000000;
+        registerFile[rd]=result;
     }
     else if(opcode==8){
         
