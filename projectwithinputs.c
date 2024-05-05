@@ -9,48 +9,78 @@ int NumberofInstructions; // number of instructions in memory
 int pc = 0;
 int zeroFlag=0;
 
+int cycle = 1;
+int* tmparr=malloc(7*sizeof(int));
 
-int fetch() {
-    int instruction=memoryfile[pc];
+int fetchInt; 
+int fetchSave; 
+int decodeInt; 
+int executeInt; 
+int memoryInt; 
+int writeBackInt;
+
+int* fetch() {
+    int* instruction=malloc(sizeof(int));
+    *instruction=memoryfile[pc];
     pc++;
     return instruction;
 }
 
-int* decode(int instruction) {
+int* decode(int* instruction) {
+        int* arr=tmparr;
+        if(cycle%2==0){
+            printf("Instruction %i\n",pc);
+            unsigned int opcode=*instruction & 0b11110000000000000000000000000000;
+            opcode=opcode>>28;
+            printf("opcode = %i\n",opcode);
+            arr[0]=opcode;
+            int rs = *instruction & 0b00001111100000000000000000000000;
+            rs = rs>>23;
+            printf("rs = %i\n",rs);
+            arr[1]=rs;
+            int rt = *instruction & 0b00000000011111000000000000000000;
+            rt=rt>>18;
+            printf("rt = %i\n",rt);
+            arr[2]=rt;
+        }
+        else{
+            int rd = *instruction & 0b00000000000000111110000000000000;
+            rd=rd>>13;
+            printf("rd = %i\n",rd);
+            arr[3]=rd;
+            int shamt = *instruction & 0b00000000000000000001111111111111;
+            printf("shift amount = %i\n",shamt);
+            arr[4]=shamt;
+            int imm= *instruction & 0b00000000000000111111111111111111;
+            printf("immediate = %i\n",imm);
+            arr[5]=imm;
+            int address = *instruction & 0b00001111111111111111111111111111;
+            printf("address = %i\n",address);
+            arr[6]=address;
+            printf("---------- \n");
+            // Printings
         
-        unsigned int opcode=instruction & 0b11110000000000000000000000000000;
-        opcode=opcode>>28;
-        int rs = instruction & 0b00001111100000000000000000000000;
-        rs = rs>>23;
-        int rt = instruction & 0b00000000011111000000000000000000;
-        rt=rt>>18;
-        int rd = instruction & 0b00000000000000111110000000000000;
-        rd=rd>>13;
-        int shamt = instruction & 0b00000000000000000001111111111111;
-        int imm= instruction & 0b00000000000000111111111111111111;
-        int address = instruction & 0b00001111111111111111111111111111;
-        
-        // Printings
-        
-        printf("Instruction %i\n",pc);
-		printf("opcode = %i\n",opcode);
-		printf("rs = %i\n",rs);
-		printf("rt = %i\n",rt);
-		printf("rd = %i\n",rd);
-		printf("shift amount = %i\n",shamt);
-        printf("immediate = %i\n",imm);
-		printf("address = %i\n",address);
-		printf("---------- \n");
+            // printf("Instruction %i\n",pc);
+            // printf("opcode = %i\n",opcode);
+            // printf("rs = %i\n",rs);
+            // printf("rt = %i\n",rt);
+            // printf("rd = %i\n",rd);
+            // printf("shift amount = %i\n",shamt);
+            // printf("immediate = %i\n",imm);
+            // printf("address = %i\n",address);
+            // printf("---------- \n");
 
-        int* arr=malloc(7*sizeof(int));
-        arr[0]=opcode;
-        arr[1]=rs;
-        arr[2]=rt;
-        arr[3]=rd;
-        arr[4]=shamt;
-        arr[5]=imm;
-        arr[6]=address;
+            
+            // arr[0]=opcode;
+            // arr[1]=rs;
+            // arr[2]=rt;
+            // arr[3]=rd;
+            // arr[4]=shamt;
+            // arr[5]=imm;
+            // arr[6]=address;
+        }
         return arr;
+        
         
 }
 
@@ -125,7 +155,7 @@ int* execute(int* arr){
         writeflag=1;
     }
     else if(opcode==4){
-        ALU(registerFile[rs],registerFile[rd],1);
+        ALU(registerFile[rs],registerFile[rt],1);
         if(zeroFlag!=1){
             pc=pc+imm;
         }
@@ -272,7 +302,7 @@ int LineToBinary(char* line){
         token=strtok(NULL," ");
         char* c=token;
         c++;
-        rd1= atoi(c); 
+        rt1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
@@ -281,14 +311,14 @@ int LineToBinary(char* line){
         c=token;
         imm1= atoi(c);
         rs1=rs1<<23;
-        rd1=rd1<<18;
-        b=b | rs1 | imm1 | rd1;
+        rt1=rt1<<18;
+        b=b | rs1 | imm1 | rt1;
     }
     else if(insnum==8 || insnum==9 ){
         token=strtok(NULL," ");
         char* c=token;
         c++;
-        rd1= atoi(c); 
+        rt1= atoi(c); 
         token=strtok(NULL," ");
         c=token;
         c++;
@@ -297,8 +327,8 @@ int LineToBinary(char* line){
         c=token;
         shamt1= atoi(c);
         rs1=rs1<<23;
-        rd1=rd1<<18;
-        b=b | rs1 | shamt1 | rd1;
+        rt1=rt1<<18;
+        b=b | rs1 | shamt1 | rt1;
     }
     else{
         token=strtok(NULL," ");
@@ -329,18 +359,147 @@ int loadInstToMemory(char* fileName){
 
 }
 
+void swapIntegers(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 int main(){
     if(loadInstToMemory("mips.txt")){
         return 1;
     }
 
-    for(int i=0;i<NumberofInstructions;i++){
-        int ins=fetch();
-        decode(ins);
-        // execute();
-        // memory();
-        // writeback();
-        //cycle++
+    int* firstInstructionData = malloc(7*sizeof(int));
+    int* secondInstructionData = malloc(7*sizeof(int));
+    int* thirdInstructionData = malloc(7*sizeof(int));
+    int* fourthInstructionData = malloc(7*sizeof(int));
+
+    while (1)
+    {
+        if (0 != writeBackInt)
+        {
+            writeBackInt = 0; 
+        }
+        swapIntegers(&writeBackInt, &memoryInt); 
+        
+        // Odd cycle
+        if (1 == cycle % 2)
+        {
+            if (fetchSave < NumberofInstructions)
+            {
+                fetchSave++; 
+                fetchInt = fetchSave; 
+            }
+        }
+
+        // Even cycle
+        else{
+            swapIntegers(&executeInt, &memoryInt); 
+            swapIntegers(&decodeInt, &executeInt); 
+            swapIntegers(&fetchInt, &decodeInt); 
+
+            
+        }
+        printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
+        cycle++; 
+
+        if(fetchInt%4==1){
+            firstInstructionData=fetch();
+        }
+        else if(fetchInt%4==2){
+            secondInstructionData=fetch();
+        }
+        else if(fetchInt%4==3){
+            thirdInstructionData=fetch();
+        }
+        else if(fetchInt%4==0 && fetchInt!=0){
+            fourthInstructionData=fetch();
+        }
+
+        if(cycle%2==0){
+            if(decodeInt%4==1){
+                tmparr=decode(firstInstructionData);
+            }
+            else if(decodeInt%4==2){
+                tmparr=decode(secondInstructionData);
+            }
+            else if(decodeInt%4==3){
+                tmparr=decode(thirdInstructionData);
+            }
+            else if(decodeInt%4==0 && decodeInt!=0){
+                tmparr=decode(fourthInstructionData);
+            }
+        }
+        else{
+            if(decodeInt%4==1){
+                firstInstructionData=decode(firstInstructionData);
+            }
+            else if(decodeInt%4==2){
+                secondInstructionData=decode(secondInstructionData);
+            }
+            else if(decodeInt%4==3){
+                thirdInstructionData=decode(thirdInstructionData);
+            }
+            else if(decodeInt%4==0 && decodeInt!=0){
+                fourthInstructionData=decode(fourthInstructionData);
+            }
+        }
+        
+
+        if(executeInt%4==1){
+            firstInstructionData=execute(firstInstructionData);
+        }
+        else if(executeInt%4==2){
+            secondInstructionData=execute(secondInstructionData);
+        }
+        else if(executeInt%4==3){
+            thirdInstructionData=execute(thirdInstructionData);
+        }
+        else if(executeInt%4==0 && executeInt!=0){
+            fourthInstructionData=execute(fourthInstructionData);
+        }
+
+        if(memoryInt%4==1){
+            firstInstructionData=memory(firstInstructionData);
+        }
+        else if(memoryInt%4==2){
+            secondInstructionData=memory(secondInstructionData);
+        }
+        else if(memoryInt%4==3){
+            thirdInstructionData=memory(thirdInstructionData);
+        }
+        else if(memoryInt%4==0 && memoryInt!=0){
+            fourthInstructionData=memory(fourthInstructionData);
+        }
+
+        if(writeBackInt%4==1){
+            writeback(firstInstructionData);
+        }
+        else if(writeBackInt%4==2){
+            writeback(secondInstructionData);
+        }
+        else if(writeBackInt%4==3){
+            writeback(thirdInstructionData);
+        }
+        else if(writeBackInt%4==0 && writeBackInt!=0){
+            writeback(fourthInstructionData);
+        }
+        //add logic for actual functions 
+        // ID 7 then decode 7 for example
+
+        for(int i=0;i<32;i++){
+            printf("R%i:%i, ",i,registerFile[i]);
+        }
+        printf("\n");
+        
+        
+        //Stopping condition
+        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
+        {
+            // Do the the last writeBack()
+            break;
+        }
     }
 }
 

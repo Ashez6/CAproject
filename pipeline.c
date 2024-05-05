@@ -30,11 +30,8 @@ int main(){
         if (0 != writeBackInt)
         {
             writeBackInt = 0; 
-            swapIntegers(&writeBackInt, &memoryInt); 
         }
-        else{
-            swapIntegers(&writeBackInt, &memoryInt); 
-        }
+        swapIntegers(&writeBackInt, &memoryInt); 
         
         // Odd cycle
         if (1 == cycle % 2)
