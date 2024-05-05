@@ -10,7 +10,8 @@ int pc = 0;
 int zeroFlag=0;
 
 int cycle = 1;
-int* tmparr=malloc(7*sizeof(int));
+int* tmparr;
+int* tmparr1;
 
 int fetchInt; 
 int fetchSave; 
@@ -130,6 +131,7 @@ int* execute(int* arr){
     int storeflag=0;
     int tmpresult=0;
 
+
     unsigned int opcode = arr[0];  
     int rs = arr[1];      
     int rt = arr[2];      
@@ -137,67 +139,102 @@ int* execute(int* arr){
     int shamt = arr[4];   
     int imm = arr[5];
     int address = arr[6];
+    int* flags=tmparr1;
 
-    if(opcode==0){
-        tmpresult= ALU(registerFile[rs],registerFile[rt],0);
-        writeflag=1;
-    }
-    else if(opcode==1){
-        tmpresult= ALU(registerFile[rs],registerFile[rt],1);
-        writeflag=1;
-    }
-    else if(opcode==2){
-        tmpresult= ALU(registerFile[rs],imm,2);
-        writeflag=1;
-    }
-    else if(opcode==3){
-        tmpresult= ALU(registerFile[rs],imm,0);
-        writeflag=1;
-    }
-    else if(opcode==4){
-        ALU(registerFile[rs],registerFile[rt],1);
-        if(zeroFlag!=1){
-            pc=pc+imm;
+    if(cycle%2==0){
+        if(opcode==0){
+            tmpresult= ALU(registerFile[rs],registerFile[rt],0);
         }
-    }
-    else if(opcode==5){
-        tmpresult= ALU(registerFile[rs],imm,3);
-        writeflag=1;
-    }
-    else if(opcode==6){
-        tmpresult= ALU(registerFile[rs],imm,4);
-        writeflag=1;
-    }
-    else if(opcode==7){
-        address=address & 0b00001111111111111111111111111111;
-        int tmp=pc & 0b11110000000000000000000000000000;
-        pc = pc | address;
-    }
-    else if(opcode==8){
-        tmpresult= ALU(registerFile[rs],shamt,5);
-        writeflag=1;
-    }
-    else if(opcode==9){
-        tmpresult= ALU(registerFile[rs],shamt,6);
-        writeflag=1;
-    }
-    else if(opcode==10){
-        tmpresult= ALU(registerFile[rs],imm,0);
-        loadflag=1;
-        writeflag=1;
+        else if(opcode==1){
+            tmpresult= ALU(registerFile[rs],registerFile[rt],1);
+        }
+        else if(opcode==2){
+            tmpresult= ALU(registerFile[rs],imm,2);
+        }
+        else if(opcode==3){
+            tmpresult= ALU(registerFile[rs],imm,0);
+        }
+        else if(opcode==4){
+            ALU(registerFile[rs],registerFile[rt],1);
+            if(zeroFlag!=1){
+                pc=pc+imm;
+            }
+        }
+        else if(opcode==5){
+            tmpresult= ALU(registerFile[rs],imm,3);
+        }
+        else if(opcode==6){
+            tmpresult= ALU(registerFile[rs],imm,4);
+        }
+        else if(opcode==7){
+            address=address & 0b00001111111111111111111111111111;
+            int tmp=pc & 0b11110000000000000000000000000000;
+            pc = tmp | address;
+        }
+        else if(opcode==8){
+            tmpresult= ALU(registerFile[rs],shamt,5);
+        }
+        else if(opcode==9){
+            tmpresult= ALU(registerFile[rs],shamt,6);
+        }
+        else if(opcode==10){
+            tmpresult= ALU(registerFile[rs],imm,0);
+        }
+        else{
+            tmpresult= ALU(registerFile[rs],imm,0);
+        }
+        flags[0]=tmpresult;
+        return flags;
     }
     else{
-        tmpresult= ALU(registerFile[rs],imm,0);
-        storeflag=1;
+        if(opcode==0){
+            writeflag=1;
+            flags[4]=rd;
+        }
+        else if(opcode==1){
+            writeflag=1;
+            flags[4]=rd;
+        }
+        else if(opcode==2){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==3){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==5){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==6){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==8){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==9){
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else if(opcode==10){
+            loadflag=1;
+            writeflag=1;
+            flags[4]=rt;
+        }
+        else{
+            storeflag=1;
+            flags[4]=rt;
+        }
+        flags[1]=writeflag;
+        flags[2]=loadflag;
+        flags[3]=storeflag;
+        return flags;
     }
-
-    int* flags=malloc(5*sizeof(int));
-    flags[0]=tmpresult;
-    flags[1]=writeflag;
-    flags[2]=loadflag;
-    flags[3]=storeflag;
-    flags[4]=rd;
-    return flags;
+    
+    
 
 }
 
@@ -369,6 +406,8 @@ int main(){
     if(loadInstToMemory("mips.txt")){
         return 1;
     }
+    tmparr=(int*)malloc(7*sizeof(int));
+    tmparr1=(int*)malloc(7*sizeof(int));
 
     int* firstInstructionData = malloc(7*sizeof(int));
     int* secondInstructionData = malloc(7*sizeof(int));
@@ -392,7 +431,6 @@ int main(){
                 fetchInt = fetchSave; 
             }
         }
-
         // Even cycle
         else{
             swapIntegers(&executeInt, &memoryInt); 
@@ -402,7 +440,6 @@ int main(){
             
         }
         printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
-        cycle++; 
 
         if(fetchInt%4==1){
             firstInstructionData=fetch();
@@ -447,17 +484,33 @@ int main(){
         }
         
 
-        if(executeInt%4==1){
-            firstInstructionData=execute(firstInstructionData);
+        if(cycle%2==0){
+            if(executeInt%4==1){
+                tmparr1=execute(firstInstructionData);
+            }
+            else if(executeInt%4==2){
+                tmparr1=execute(secondInstructionData);
+            }
+            else if(executeInt%4==3){
+                tmparr1=execute(thirdInstructionData);
+            }
+            else if(executeInt%4==0 && executeInt!=0){
+                tmparr1=execute(fourthInstructionData);
+            }
         }
-        else if(executeInt%4==2){
-            secondInstructionData=execute(secondInstructionData);
-        }
-        else if(executeInt%4==3){
-            thirdInstructionData=execute(thirdInstructionData);
-        }
-        else if(executeInt%4==0 && executeInt!=0){
-            fourthInstructionData=execute(fourthInstructionData);
+        else{
+            if(executeInt%4==1){
+                firstInstructionData=execute(firstInstructionData);
+            }
+            else if(executeInt%4==2){
+                secondInstructionData=execute(secondInstructionData);
+            }
+            else if(executeInt%4==3){
+                thirdInstructionData=execute(thirdInstructionData);
+            }
+            else if(executeInt%4==0 && executeInt!=0){
+                fourthInstructionData=execute(fourthInstructionData);
+            }
         }
 
         if(memoryInt%4==1){
@@ -493,7 +546,7 @@ int main(){
         }
         printf("\n");
         
-        
+        cycle++; 
         //Stopping condition
         if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
         {
