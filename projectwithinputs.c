@@ -7,41 +7,28 @@ int* memoryfile;
 int registerFile [32] ; //31 gprs
 int NumberofInstructions; // number of instructions in memory
 int pc = 0;
-int instruction;   //instruction fetched from memory
 int zeroFlag=0;
 
-unsigned int opcode = 0;  
-int rs = 0;      
-int rt = 0;      
-int rd = 0;      
-int shamt = 0;   
-int imm = 0;
-int address = 0;
 
-int writeflag=0;
-int loadflag=0;
-int storeflag=0;
-int tmpresult;
-
-void fetch() {
-    instruction=memoryfile[pc];
+int fetch() {
+    int instruction=memoryfile[pc];
     pc++;
+    return instruction;
 }
 
-
-void decode() {
+int* decode(int instruction) {
         
-        opcode=instruction & 0b11110000000000000000000000000000;
+        unsigned int opcode=instruction & 0b11110000000000000000000000000000;
         opcode=opcode>>28;
-        rs = instruction & 0b00001111100000000000000000000000;
+        int rs = instruction & 0b00001111100000000000000000000000;
         rs = rs>>23;
-        rt = instruction & 0b00000000011111000000000000000000;
+        int rt = instruction & 0b00000000011111000000000000000000;
         rt=rt>>18;
-        rd = instruction & 0b00000000000000111110000000000000;
+        int rd = instruction & 0b00000000000000111110000000000000;
         rd=rd>>13;
-        shamt = instruction & 0b00000000000000000001111111111111;
-        imm= instruction & 0b00000000000000111111111111111111;
-        address = instruction & 0b00001111111111111111111111111111;
+        int shamt = instruction & 0b00000000000000000001111111111111;
+        int imm= instruction & 0b00000000000000111111111111111111;
+        int address = instruction & 0b00001111111111111111111111111111;
         
         // Printings
         
@@ -54,6 +41,16 @@ void decode() {
         printf("immediate = %i\n",imm);
 		printf("address = %i\n",address);
 		printf("---------- \n");
+
+        int* arr=malloc(7*sizeof(int));
+        arr[0]=opcode;
+        arr[1]=rs;
+        arr[2]=rt;
+        arr[3]=rd;
+        arr[4]=shamt;
+        arr[5]=imm;
+        arr[6]=address;
+        return arr;
         
 }
 
@@ -96,10 +93,21 @@ int ALU(int operandA, int operandB, int operation) {
     return output;
 }
 
-void execute(){
-    writeflag=0;
-    loadflag=0;
-    storeflag=0;
+int* execute(int* arr){
+
+    int writeflag=0;
+    int loadflag=0;
+    int storeflag=0;
+    int tmpresult=0;
+
+    unsigned int opcode = arr[0];  
+    int rs = arr[1];      
+    int rt = arr[2];      
+    int rd = arr[3];      
+    int shamt = arr[4];   
+    int imm = arr[5];
+    int address = arr[6];
+
     if(opcode==0){
         tmpresult= ALU(registerFile[rs],registerFile[rt],0);
         writeflag=1;
@@ -153,22 +161,35 @@ void execute(){
         storeflag=1;
     }
 
+    int* flags=malloc(5*sizeof(int));
+    flags[0]=tmpresult;
+    flags[1]=writeflag;
+    flags[2]=loadflag;
+    flags[3]=storeflag;
+    flags[4]=rd;
+    return flags;
+
 }
 
-void memory(){
-    if(storeflag){
-        memoryfile[tmpresult]=registerFile[rd];
+int* memory(int* arr){
+    if(arr[3]){
+        memoryfile[arr[0]]=registerFile[arr[4]];
     }
-    if(loadflag){
-        tmpresult=memoryfile[tmpresult];
+    if(arr[2]){
+        arr[0]=memoryfile[arr[0]];
+    }
+    return arr;
+}
+
+void writeback(int* arr){
+    if(arr[1]){
+        registerFile[arr[4]]=arr[0];
     }
 }
 
-void writeback(){
-    if(writeflag){
-        registerFile[rd]=tmpresult;
-    }
-}
+
+
+
 
 
 
@@ -314,8 +335,8 @@ int main(){
     }
 
     for(int i=0;i<NumberofInstructions;i++){
-        fetch();
-        decode();
+        int ins=fetch();
+        decode(ins);
         // execute();
         // memory();
         // writeback();
