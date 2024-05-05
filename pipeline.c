@@ -15,46 +15,46 @@ void swapIntegers(int *a, int *b) {
 int NumberofInstructions = 7; 
 
 
-int fetch; 
+int fetchInt; 
 int fetchSave; 
 
-int decode; 
-int execute; 
-int memory; 
-int writeBack;
+int decodeInt; 
+int executeInt; 
+int memoryInt; 
+int writeBackInt;
 
 int main(){
 
     while (1)
     {
-        if (0 != writeBack)
+        if (0 != writeBackInt)
         {
-            writeBack = 0; 
-            swapIntegers(&writeBack, &memory); 
+            writeBackInt = 0; 
+            swapIntegers(&writeBackInt, &memoryInt); 
         }
         else{
-            swapIntegers(&writeBack, &memory); 
+            swapIntegers(&writeBackInt, &memoryInt); 
         }
         
         // Odd cycle
         if (1 == cycle % 2)
         {
-            if (fetch < NumberofInstructions && fetchSave < NumberofInstructions)
+            if (fetchSave < NumberofInstructions)
             {
                 fetchSave++; 
-                fetch = fetchSave; 
+                fetchInt = fetchSave; 
             }
         }
 
         // Even cycle
         else{
-            swapIntegers(&execute, &memory); 
-            swapIntegers(&decode, &execute); 
-            swapIntegers(&fetch, &decode); 
+            swapIntegers(&executeInt, &memoryInt); 
+            swapIntegers(&decodeInt, &executeInt); 
+            swapIntegers(&fetchInt, &decodeInt); 
 
             
         }
-        printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetch, decode, execute, memory, writeBack); 
+        printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
         cycle++; 
 
 
@@ -63,7 +63,7 @@ int main(){
 
 
         //Stopping condition
-        if (0 == fetch && 0 == decode && 0 == execute && 0 == memory && 0 != writeBack )
+        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
         {
             // Do the the last writeBack()
             break;
