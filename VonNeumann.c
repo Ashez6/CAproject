@@ -3,15 +3,15 @@
 #include <string.h>
 
 // const int R0=0;    // zero register 
-int* memoryfile;
+int* memoryfile=NULL;
 int registerFile [32] ; //31 gprs
 int NumberofInstructions; // number of instructions in memory
 int pc = 0;
 int zeroFlag=0;
 
 int cycle = 1;
-int* tmparr;
-int* tmparr1;
+int* tmparr=NULL;
+int* tmparr1=NULL;
 
 int fetchInt; 
 int fetchSave; 
@@ -21,14 +21,18 @@ int memoryInt;
 int writeBackInt;
 
 int* fetch() {
-    int* instruction=malloc(sizeof(int));
-    *instruction=memoryfile[pc];
+    int* instruction=malloc(7*sizeof(int));
+    unsigned int ins=memoryfile[pc];
+    *instruction=ins;
     pc++;
     return instruction;
 }
 
 int* decode(int* instruction) {
-        int* arr=tmparr;
+        int* arr=malloc(7*sizeof(int));
+        for(int i=0;i<7;i++){
+            arr[i]=tmparr[i];
+        }
         if(cycle%2==0){
             printf("Instruction %i\n",pc);
             unsigned int opcode=*instruction & 0b11110000000000000000000000000000;
@@ -139,7 +143,10 @@ int* execute(int* arr){
     int shamt = arr[4];   
     int imm = arr[5];
     int address = arr[6];
-    int* flags=tmparr1;
+    int* flags=malloc(7*sizeof(int));
+        for(int i=0;i<7;i++){
+            flags[i]=tmparr1[i];
+        }
 
     if(cycle%2==0){
         if(opcode==0){
@@ -224,7 +231,7 @@ int* execute(int* arr){
             writeflag=1;
             flags[4]=rt;
         }
-        else{
+        else if(opcode==11){
             storeflag=1;
             flags[4]=rt;
         }
@@ -250,7 +257,9 @@ int* memory(int* arr){
 
 void writeback(int* arr){
     if(arr[1]){
-        registerFile[arr[4]]=arr[0];
+        if(arr[4]!=0){
+            registerFile[arr[4]]=arr[0];
+        }
     }
 }
 
@@ -401,6 +410,13 @@ void swapIntegers(int *a, int *b) {
     *a = *b;
     *b = temp;
 }
+void printarray(int* arr){
+    printf("[");
+    for(int i=0;i<7;i++){
+        printf("%i,",arr[i]);
+    }
+    printf("]\n");
+}
 
 int main(){
     if(loadInstToMemory("mips.txt")){
@@ -454,6 +470,15 @@ int main(){
             fourthInstructionData=fetch();
         }
 
+        printf("first data :");
+        printarray(firstInstructionData);
+        printf("second data :");
+        printarray(secondInstructionData);
+        printf("third data :");
+        printarray(thirdInstructionData);
+        printf("forth data :");
+        printarray(fourthInstructionData);
+
         if(cycle%2==0){
             if(decodeInt%4==1){
                 tmparr=decode(firstInstructionData);
@@ -467,6 +492,8 @@ int main(){
             else if(decodeInt%4==0 && decodeInt!=0){
                 tmparr=decode(fourthInstructionData);
             }
+            printf("tmparr:");
+            printarray(tmparr);
         }
         else{
             if(decodeInt%4==1){
@@ -481,6 +508,14 @@ int main(){
             else if(decodeInt%4==0 && decodeInt!=0){
                 fourthInstructionData=decode(fourthInstructionData);
             }
+            printf("first data :");
+        printarray(firstInstructionData);
+        printf("second data :");
+        printarray(secondInstructionData);
+        printf("third data :");
+        printarray(thirdInstructionData);
+        printf("forth data :");
+        printarray(fourthInstructionData);
         }
         
 
@@ -497,6 +532,8 @@ int main(){
             else if(executeInt%4==0 && executeInt!=0){
                 tmparr1=execute(fourthInstructionData);
             }
+             printf("tmparr1:");
+            printarray(tmparr1);
         }
         else{
             if(executeInt%4==1){
@@ -511,6 +548,14 @@ int main(){
             else if(executeInt%4==0 && executeInt!=0){
                 fourthInstructionData=execute(fourthInstructionData);
             }
+            printf("first data :");
+        printarray(firstInstructionData);
+        printf("second data :");
+        printarray(secondInstructionData);
+        printf("third data :");
+        printarray(thirdInstructionData);
+        printf("forth data :");
+        printarray(fourthInstructionData);
         }
 
         if(memoryInt%4==1){
@@ -525,6 +570,14 @@ int main(){
         else if(memoryInt%4==0 && memoryInt!=0){
             fourthInstructionData=memory(fourthInstructionData);
         }
+        printf("first data :");
+        printarray(firstInstructionData);
+        printf("second data :");
+        printarray(secondInstructionData);
+        printf("third data :");
+        printarray(thirdInstructionData);
+        printf("forth data :");
+        printarray(fourthInstructionData);
 
         if(writeBackInt%4==1){
             writeback(firstInstructionData);
@@ -538,6 +591,14 @@ int main(){
         else if(writeBackInt%4==0 && writeBackInt!=0){
             writeback(fourthInstructionData);
         }
+        printf("first data :");
+        printarray(firstInstructionData);
+        printf("second data :");
+        printarray(secondInstructionData);
+        printf("third data :");
+        printarray(thirdInstructionData);
+        printf("forth data :");
+        printarray(fourthInstructionData);
         //add logic for actual functions 
         // ID 7 then decode 7 for example
 
@@ -554,5 +615,6 @@ int main(){
             break;
         }
     }
+    return 0;
 }
 
