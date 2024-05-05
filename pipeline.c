@@ -34,7 +34,6 @@ int main(){
         }
         else{
             swapIntegers(&writeBack, &memory); 
-
         }
         
         // Odd cycle
@@ -55,12 +54,18 @@ int main(){
 
             
         }
-        printf("Cycle %d:  IF: %d, ID: %d, EX:  %d, MEM: %d, WB:  %d \n",cycle, fetch, decode, execute, memory, writeBack); 
+        printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetch, decode, execute, memory, writeBack); 
         cycle++; 
+
+
+        //add logic for actual functions 
+        // ID 7 then decode 7 for example
+
 
         //Stopping condition
         if (0 == fetch && 0 == decode && 0 == execute && 0 == memory && 0 != writeBack )
         {
+            // Do the the last writeBack()
             break;
         }
         
