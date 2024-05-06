@@ -20,6 +20,7 @@ int executeInt;
 int memoryInt; 
 int writeBackInt;
 int branchflag;
+int jumpFlag; 
 
 int* fetch() {
     int* instruction=malloc(7*sizeof(int));
@@ -58,7 +59,7 @@ int* decode(int* instruction) {
             // printf("shift amount = %i\n",shamt);
             arr[4]=shamt;
             int imm= *instruction & 0b00000000000000111111111111111111;
-            // printf("immediate = %i\n",imm);
+            //  printf("immediate = %i\n",imm);
             if(imm>=131072){
                 imm=imm | 0b11111111111111000000000000000000;
             }
@@ -175,9 +176,17 @@ int* execute(int* arr){
             tmpresult= ALU(registerFile[rs],imm,4);
         }
         else if(opcode==7){
+            // printf("HERE IS THE OLD PC VALUE: %d \n", pc); 
+
             address=address & 0b00001111111111111111111111111111;
             int tmp=pc & 0b11110000000000000000000000000000;
             pc = tmp | address;
+
+            // printf("HERE IS THE address VALUE: %d \n", address); 
+
+            // printf("HERE IS THE temp VALUE: %d \n", tmp); 
+
+            // printf("HERE IS THE PC VALUE: %d \n", pc); 
         }
         else if(opcode==8){
             tmpresult= ALU(registerFile[rs],shamt,5);
@@ -196,6 +205,7 @@ int* execute(int* arr){
     }
     else{
         branchflag=0;
+        jumpFlag = 0; 
         if(opcode==0){
             writeflag=1;
             flags[4]=rd;
@@ -214,7 +224,7 @@ int* execute(int* arr){
         }
         else if(opcode==4){
             if(zeroFlag!=1){
-                pc=pc+imm-2;//-2 since 2 fetches have occured incrementing the pc
+                pc=pc+imm; 
                 branchflag=1;
             }
             
@@ -226,6 +236,9 @@ int* execute(int* arr){
         else if(opcode==6){
             writeflag=1;
             flags[4]=rt;
+        }
+         else if(opcode==7){
+          jumpFlag = 1; 
         }
         else if(opcode==8){
             writeflag=1;
@@ -262,10 +275,10 @@ int* memory(int* arr){
     if(arr[2]){
         arr[0]=memoryfile[arr[0]];
     }
-    if(branchflag){
+    if(branchflag || jumpFlag){
+        pc -=2; // -2 since 2 fetches have occured incrementing the pc
         decodeInt=0;
         executeInt=0;
-        memoryInt=0;
     }
     return arr;
 }
@@ -372,9 +385,9 @@ int LineToBinary(char* line){
         token=strtok(NULL," ");
         c=token;
         imm1= atoi(c);
-        printf("%i\n",imm1);
+        //printf("%i\n",imm1);
         imm1= imm1 & 0b00000000000000111111111111111111;
-        printf("%i\n",imm1);
+        //printf("%i\n",imm1);
         rs1=rs1<<23;
         rt1=rt1<<18;
         b=b | rs1 | imm1 | rt1;
@@ -398,8 +411,8 @@ int LineToBinary(char* line){
     else{
         token=strtok(NULL," ");
         char* c=token;
-        b= b | address1;
         address1= atoi(c); 
+         b= b | address1;
     }
     return b;
     
@@ -579,7 +592,7 @@ int main(){
         
         cycle++; 
         //Stopping condition
-        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && !branchflag)
+        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && !branchflag && !jumpFlag)
         {
             break;
         }
