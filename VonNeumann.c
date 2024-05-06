@@ -19,6 +19,7 @@ int decodeInt;
 int executeInt; 
 int memoryInt; 
 int writeBackInt;
+int branchflag;
 
 int* fetch() {
     int* instruction=malloc(7*sizeof(int));
@@ -166,9 +167,6 @@ int* execute(int* arr){
         }
         else if(opcode==4){
             ALU(registerFile[rs],registerFile[rt],1);
-            if(zeroFlag!=1){
-                pc=pc+imm;
-            }
         }
         else if(opcode==5){
             tmpresult= ALU(registerFile[rs],imm,3);
@@ -197,6 +195,7 @@ int* execute(int* arr){
         return flags;
     }
     else{
+        branchflag=0;
         if(opcode==0){
             writeflag=1;
             flags[4]=rd;
@@ -212,6 +211,13 @@ int* execute(int* arr){
         else if(opcode==3){
             writeflag=1;
             flags[4]=rt;
+        }
+        else if(opcode==4){
+            if(zeroFlag!=1){
+                pc=pc+imm-2;//-2 since 2 fetches have occured incrementing the pc
+                branchflag=1;
+            }
+            
         }
         else if(opcode==5){
             writeflag=1;
@@ -256,11 +262,16 @@ int* memory(int* arr){
     if(arr[2]){
         arr[0]=memoryfile[arr[0]];
     }
+    if(branchflag){
+        decodeInt=0;
+        executeInt=0;
+        memoryInt=0;
+    }
     return arr;
 }
 
 void writeback(int* arr){
-    if(arr[1]){
+    if(arr[1]){  
         if(arr[4]!=0){
             printf("Updating R%i value to %i\n",arr[4],arr[0]);
             registerFile[arr[4]]=arr[0];
@@ -451,7 +462,7 @@ int main(){
         {
             if (fetchSave < NumberofInstructions)
             {
-                fetchSave++; 
+                fetchSave=pc+1; 
                 fetchInt = fetchSave; 
             }
         }
@@ -568,9 +579,8 @@ int main(){
         
         cycle++; 
         //Stopping condition
-        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
+        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && !branchflag)
         {
-            // Do the the last writeBack()
             break;
         }
     }
