@@ -19,8 +19,8 @@ int decodeInt;
 int executeInt; 
 int memoryInt; 
 int writeBackInt;
-int branchflag;
-int jumpFlag; 
+int overflowFLag;
+int carryFlag;
 
 int* fetch() {
     int* instruction=malloc(7*sizeof(int));
@@ -98,15 +98,63 @@ int* decode(int* instruction) {
 int ALU(int operandA, int operandB, int operation) {
     int output = 0;
     zeroFlag = 0;
+    overflowFLag=0;
+    carryFlag=0;
 
     if(operation==0){
         output= operandA + operandB;
+
+        // Extract sign bits
+        int signA = operandA >> 31; // Right shift to get the sign bit
+        int signB = operandB >> 31;
+        int signResult = output >> 31;
+
+        // Check for overflow
+        if (signA ^ signB ^ signResult ) {
+            printf("Overflow detected!\n");
+            overflowFLag=1;
+        }
+
+        unsigned long temp1 = operandA;
+        unsigned long temp2 = operandB ;
+
+        // Perform the operation (change OP to the actual operation you want, e.g., +, -, *, etc.)
+        unsigned long result = temp1 + temp2;
+
+        // Check the 33rd bit (bit 32) using the MASK
+        if ((result & 0xFFFFFFFF00000000) >  0xFFFFFFFF) {
+            printf("Carry = 1\n");
+
+        }
     }
     else if (operation==1) {
         output=operandA - operandB;
     }
     else if (operation==2) {
         output=operandA * operandB;
+
+        // Extract sign bits
+        int signA = operandA >> 31; // Right shift to get the sign bit
+        int signB = operandB >> 31;
+        int signResult = output >> 31;
+
+        // Check for overflow
+        if (signA ^ signB^signResult) {
+            printf("Overflow detected!\n");
+            overflowFLag=1;
+        }
+
+        unsigned long temp1 = operandA;
+        unsigned long temp2 = operandB ;
+
+        // Perform the operation (change OP to the actual operation you want, e.g., +, -, *, etc.)
+        unsigned long result = temp1 * temp2;
+
+        // Check the 33rd bit (bit 32) using the MASK
+        if ((result & 0xFFFFFFFF00000000) >  0xFFFFFFFF) {
+            printf("Carry = 1\n");
+
+        }
     }
     else if (operation==3) {
         output=operandA & operandB;
@@ -176,17 +224,7 @@ int* execute(int* arr){
             tmpresult= ALU(registerFile[rs],imm,4);
         }
         else if(opcode==7){
-            // printf("HERE IS THE OLD PC VALUE: %d \n", pc); 
-
-            address=address & 0b00001111111111111111111111111111;
-            int tmp=pc & 0b11110000000000000000000000000000;
-            pc = tmp | address;
-
-            printf("HERE IS THE address VALUE: %d \n", address); 
-
-            printf("HERE IS THE temp VALUE: %d \n", tmp); 
-
-            printf("HERE IS THE PC VALUE: %d \n", pc); 
+            
         }
         else if(opcode==8){
             tmpresult= ALU(registerFile[rs],shamt,5);
@@ -204,8 +242,8 @@ int* execute(int* arr){
         return flags;
     }
     else{
-        branchflag=0;
-        jumpFlag = 0; 
+        int branchflag=0;
+        int jumpFlag = 0; 
         if(opcode==0){
             writeflag=1;
             flags[4]=rd;
@@ -238,7 +276,11 @@ int* execute(int* arr){
             flags[4]=rt;
         }
          else if(opcode==7){
-          jumpFlag = 1; 
+
+            address=address & 0b00001111111111111111111111111111;
+            int tmp=pc & 0b11110000000000000000000000000000;
+            pc = tmp | address;
+            jumpFlag = 1; 
         }
         else if(opcode==8){
             writeflag=1;
@@ -260,6 +302,16 @@ int* execute(int* arr){
         flags[1]=writeflag;
         flags[2]=loadflag;
         flags[3]=storeflag;
+
+        if(jumpFlag){
+            fetchInt=0;
+            decodeInt=0;
+        }
+        if(branchflag){
+            pc-=2; // -2 since 2 fetches have occured incrementing the pc
+            fetchInt=0;
+            decodeInt=0;
+        }
         return flags;
     }
     
@@ -275,11 +327,6 @@ int* memory(int* arr){
     if(arr[2]){
         arr[0]=memoryfile[arr[0]];
     }
-    if(branchflag || jumpFlag){
-        pc -=2; // -2 since 2 fetches have occured incrementing the pc
-        decodeInt=0;
-        executeInt=0;
-        }
     return arr;
 }
 
@@ -473,9 +520,9 @@ int main(){
         // Odd cycle
         if (1 == cycle % 2)
         {
+            fetchSave=pc+1;
             if (fetchSave < NumberofInstructions)
             {
-                fetchSave=pc+1; 
                 fetchInt = fetchSave; 
             }
         }
@@ -488,6 +535,19 @@ int main(){
             
         }
         printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
+
+        if(writeBackInt%4==1){
+            writeback(firstInstructionData);
+        }
+        else if(writeBackInt%4==2){
+            writeback(secondInstructionData);
+        }
+        else if(writeBackInt%4==3){
+            writeback(thirdInstructionData);
+        }
+        else if(writeBackInt%4==0 && writeBackInt!=0){
+            writeback(fourthInstructionData);
+        }
 
         if(fetchInt%4==1){
             firstInstructionData=fetch();
@@ -576,23 +636,11 @@ int main(){
             fourthInstructionData=memory(fourthInstructionData);
         }
 
-        if(writeBackInt%4==1){
-            writeback(firstInstructionData);
-        }
-        else if(writeBackInt%4==2){
-            writeback(secondInstructionData);
-        }
-        else if(writeBackInt%4==3){
-            writeback(thirdInstructionData);
-        }
-        else if(writeBackInt%4==0 && writeBackInt!=0){
-            writeback(fourthInstructionData);
-        }
 
         
         cycle++; 
         //Stopping condition
-        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && !branchflag && !jumpFlag)
+        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt)
         {
             break;
         }

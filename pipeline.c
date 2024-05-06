@@ -70,8 +70,19 @@ int main(){
         
     // }
     
-    printf("%i\n",atoi("3"));
-    printf("%i\n",atoi("-5"));
+    unsigned long long temp1 = 4294967295;
+        unsigned long long temp2 = 1 ;
+
+        // Perform the operation (change OP to the actual operation you want, e.g., +, -, *, etc.)
+        unsigned long long result = temp1 + temp2;
+
+        printf("%llu\n",result);
+
+        // Check the 33rd bit (bit 32) using the MASK
+        if ((result & 0xFFFFFFFF00000000) >  0xFFFFFFFF) {
+            printf("Carry = 1\n");
+
+        }
 
     return 0; 
 }
