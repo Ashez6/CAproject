@@ -182,11 +182,11 @@ int* execute(int* arr){
             int tmp=pc & 0b11110000000000000000000000000000;
             pc = tmp | address;
 
-            // printf("HERE IS THE address VALUE: %d \n", address); 
+            printf("HERE IS THE address VALUE: %d \n", address); 
 
-            // printf("HERE IS THE temp VALUE: %d \n", tmp); 
+            printf("HERE IS THE temp VALUE: %d \n", tmp); 
 
-            // printf("HERE IS THE PC VALUE: %d \n", pc); 
+            printf("HERE IS THE PC VALUE: %d \n", pc); 
         }
         else if(opcode==8){
             tmpresult= ALU(registerFile[rs],shamt,5);
@@ -279,7 +279,7 @@ int* memory(int* arr){
         pc -=2; // -2 since 2 fetches have occured incrementing the pc
         decodeInt=0;
         executeInt=0;
-    }
+        }
     return arr;
 }
 
