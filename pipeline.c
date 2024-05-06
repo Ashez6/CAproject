@@ -25,52 +25,53 @@ int writeBackInt;
 
 int main(){
 
-    while (1)
-    {
-        if (0 != writeBackInt)
-        {
-            writeBackInt = 0; 
-        }
-        swapIntegers(&writeBackInt, &memoryInt); 
+    // while (1)
+    // {
+    //     if (0 != writeBackInt)
+    //     {
+    //         writeBackInt = 0; 
+    //     }
+    //     swapIntegers(&writeBackInt, &memoryInt); 
         
-        // Odd cycle
-        if (1 == cycle % 2)
-        {
-            if (fetchSave < NumberofInstructions)
-            {
-                fetchSave++; 
-                fetchInt = fetchSave; 
-            }
-        }
+    //     // Odd cycle
+    //     if (1 == cycle % 2)
+    //     {
+    //         if (fetchSave < NumberofInstructions)
+    //         {
+    //             fetchSave++; 
+    //             fetchInt = fetchSave; 
+    //         }
+    //     }
 
-        // Even cycle
-        else{
-            swapIntegers(&executeInt, &memoryInt); 
-            swapIntegers(&decodeInt, &executeInt); 
-            swapIntegers(&fetchInt, &decodeInt); 
+    //     // Even cycle
+    //     else{
+    //         swapIntegers(&executeInt, &memoryInt); 
+    //         swapIntegers(&decodeInt, &executeInt); 
+    //         swapIntegers(&fetchInt, &decodeInt); 
 
             
-        }
-        printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
-        cycle++; 
+    //     }
+    //     printf("Cycle %d:  IF: %d, ID: %d, EX: %d, MEM: %d, WB:  %d \n",cycle, fetchInt, decodeInt, executeInt, memoryInt, writeBackInt); 
+    //     cycle++; 
 
 
-        //add logic for actual functions 
-        // ID 7 then decode 7 for example
+    //     //add logic for actual functions 
+    //     // ID 7 then decode 7 for example
 
 
-        //Stopping condition
-        if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
-        {
-            // Do the the last writeBack()
-            break;
-        }
+    //     //Stopping condition
+    //     if (0 == fetchInt && 0 == decodeInt && 0 == executeInt && 0 == memoryInt && 0 != writeBackInt )
+    //     {
+    //         // Do the the last writeBack()
+    //         break;
+    //     }
         
         
         
-    }
+    // }
     
-
+    printf("%i\n",atoi("3"));
+    printf("%i\n",atoi("-5"));
 
     return 0; 
 }
