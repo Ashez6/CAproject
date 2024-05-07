@@ -27,45 +27,48 @@ int* fetch() {
     unsigned int ins=memoryfile[pc];
     *instruction=ins;
     pc++;
+    printf("Fetch output : %i\n",*instruction);
     return instruction;
 }
 
 int* decode(int* instruction) {
+
+        printf("Decode input : %i\n",*instruction);
         int* arr=malloc(7*sizeof(int));
         for(int i=0;i<7;i++){
             arr[i]=tmparr[i];
         }
         if(cycle%2==0){
-            // printf("Instruction %i\n",pc);
+            printf("Decode output : Instruction=%i ",pc);
             unsigned int opcode=*instruction & 0b11110000000000000000000000000000;
             opcode=opcode>>28;
-            // printf("opcode = %i\n",opcode);
+            printf("opcode=%i ",opcode);
             arr[0]=opcode;
             int rs = *instruction & 0b00001111100000000000000000000000;
             rs = rs>>23;
-            // printf("rs = %i\n",rs);
+            printf("rs=%i ",rs);
             arr[1]=rs;
             int rt = *instruction & 0b00000000011111000000000000000000;
             rt=rt>>18;
-            // printf("rt = %i\n",rt);
+            printf("rt=%i \n",rt);
             arr[2]=rt;
         }
         else{
             int rd = *instruction & 0b00000000000000111110000000000000;
             rd=rd>>13;
-            // printf("rd = %i\n",rd);
+            printf("Decode output : rd=%i ",rd);
             arr[3]=rd;
             int shamt = *instruction & 0b00000000000000000001111111111111;
-            // printf("shift amount = %i\n",shamt);
+            printf("shamt=%i ",shamt);
             arr[4]=shamt;
             int imm= *instruction & 0b00000000000000111111111111111111;
-            //  printf("immediate = %i\n",imm);
+             printf("immediate=%i ",imm);
             if(imm>=131072){
                 imm=imm | 0b11111111111111000000000000000000;
             }
             arr[5]=imm;
             int address = *instruction & 0b00001111111111111111111111111111;
-            // printf("address = %i\n",address);
+            printf("address=%i\n",address);
             arr[6]=address;
             // printf("---------- \n");
             // Printings
@@ -196,6 +199,7 @@ int* execute(int* arr){
     int shamt = arr[4];   
     int imm = arr[5];
     int address = arr[6];
+    printf("Execute input : opcode=%i rs=%i rt=%i rd=%i shamt=%i imm=%i address=%i\n",opcode,rs,rt,rd,shamt,imm,address);
     int* flags=malloc(7*sizeof(int));
         for(int i=0;i<7;i++){
             flags[i]=tmparr1[i];
@@ -239,6 +243,7 @@ int* execute(int* arr){
             tmpresult= ALU(registerFile[rs],imm,0);
         }
         flags[0]=tmpresult;
+        printf("Execute output : ALU result=%i\n",tmpresult);
         return flags;
     }
     else{
@@ -312,6 +317,7 @@ int* execute(int* arr){
             fetchInt=0;
             decodeInt=0;
         }
+        printf("Execute output : writeflag=%i loadflag=%i storeflag=%i\n",writeflag,loadflag,storeflag);
         return flags;
     }
     
@@ -320,21 +326,28 @@ int* execute(int* arr){
 }
 
 int* memory(int* arr){
+    printf("Memory access input : ALU result=%i loadflag=%i storeflag=%i rt/rd=%i\n",arr[0],arr[2],arr[3],arr[4]);
     if(arr[3]){
-        printf("Updating memory location %i value to %i\n",arr[0],registerFile[arr[4]]);
+        printf("Updating memory location %i value from %i to %i\n",arr[0],memoryfile[arr[0]],registerFile[arr[4]]);
         memoryfile[arr[0]]=registerFile[arr[4]];
     }
     if(arr[2]){
         arr[0]=memoryfile[arr[0]];
+        printf("Memory access output : Value to load = %i\n",arr[0]);
     }
+
     return arr;
 }
 
 void writeback(int* arr){
+    printf("Write back input : Value to load=%i writeflag=%i rt/rd=%i\n",arr[0],arr[1],arr[4]);
     if(arr[1]){  
         if(arr[4]!=0){
-            printf("Updating R%i value to %i\n",arr[4],arr[0]);
+            printf("Updating R%i value from %i to %i\n",arr[4],registerFile[arr[4]],arr[0]);
             registerFile[arr[4]]=arr[0];
+        }
+        else{
+            printf("Writing to R0 failed.\n");
         }
     }
 }
@@ -644,6 +657,7 @@ int main(){
         {
             break;
         }
+        printf("\n");
     }
 
     printf("Register File:\n");
@@ -652,11 +666,11 @@ int main(){
     }
     printf("\n");
 
-    // printf("Main Memory:\n");
-    // for(int i=0;i<2048;i++){
-    //         printf("%i:%i, ",i,memoryfile[i]);
-    // }
-    // printf("\n");
+    printf("Main Memory:\n");
+    for(int i=0;i<2048;i++){
+            printf("%i:%i, ",i,memoryfile[i]);
+    }
+    printf("\n");
     return 0;
 }
 
