@@ -161,6 +161,30 @@ int ALU(int operandA, int operandB, int operation)
     else if (operation == 1)
     {
         output = operandA - operandB;
+
+        // Extract sign bits
+        int signA = operandA >> 31; // Right shift to get the sign bit
+        int signB = operandB >> 31;
+        int signResult = output >> 31;
+
+        // Check for overflow
+        if (signA ^ signB ^ signResult)
+        {
+            printf("Overflow detected!\n");
+            overflowFLag = 1;
+        }
+
+        unsigned long temp1 = operandA;
+        unsigned long temp2 = operandB;
+
+        // Perform the operation (change OP to the actual operation you want, e.g., +, -, *, etc.)
+        unsigned long result = temp1 - temp2;
+
+        // Check the 33rd bit (bit 32) using the MASK
+        if ((result & 0xFFFFFFFF00000000) > 0xFFFFFFFF)
+        {
+            printf("Carry = 1\n");
+        }
     }
     else if (operation == 2)
     {
@@ -181,7 +205,6 @@ int ALU(int operandA, int operandB, int operation)
         unsigned long temp1 = operandA;
         unsigned long temp2 = operandB;
 
-        // Perform the operation (change OP to the actual operation you want, e.g., +, -, *, etc.)
         unsigned long result = temp1 * temp2;
 
         // Check the 33rd bit (bit 32) using the MASK
@@ -238,53 +261,138 @@ void execute()
    
     if (cycle % 2 == 0)
     {
-
         if (opcode == 0)
         {
-            tmpresult = ALU(registerFile[rs], registerFile[rt], 0);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, registerFile[rt], 0);
+                else
+                    tmpresult = ALU(*EXMEM, registerFile[rt], 0);
+            }else if(*(EXMEM+4) == rt){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(registerFile[rs],*MEMWB, 0);
+                else
+                    tmpresult = ALU(registerFile[rs], *EXMEM, 0);
+            }else
+                tmpresult = ALU(registerFile[rs], registerFile[rt], 0);
+            
         }
         else if (opcode == 1)
         {
-            tmpresult = ALU(registerFile[rs], registerFile[rt], 1);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, registerFile[rt], 1);
+                else
+                    tmpresult = ALU(*EXMEM, registerFile[rt], 1);
+            }else if(*(EXMEM+4) == rt){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(registerFile[rs],*MEMWB, 1);
+                else
+                    tmpresult = ALU(registerFile[rs], *EXMEM, 1);
+            }else
+                tmpresult = ALU(registerFile[rs], registerFile[rt], 1);
         }
         else if (opcode == 2)
         {
-            tmpresult = ALU(registerFile[rs], imm, 2);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 2);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 2);
+            }
+            else
+                tmpresult = ALU(registerFile[rs], imm, 2);
         }
         else if (opcode == 3)
         {
-            tmpresult = ALU(registerFile[rs], imm, 0);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 0);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 0);
+            }
+            else
+                tmpresult = ALU(registerFile[rs], imm, 0);
         }
         else if (opcode == 4)
         {
-            ALU(registerFile[rs], registerFile[rt], 1);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, registerFile[rt], 1);
+                else
+                    tmpresult = ALU(*EXMEM, registerFile[rt], 1);
+            }else if(*(EXMEM+4) == rt){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(registerFile[rs],*MEMWB, 1);
+                else
+                    tmpresult = ALU(registerFile[rs], *EXMEM, 1);
+            }
+            else
+                tmpresult = ALU(registerFile[rs], registerFile[rt], 1);
         }
         else if (opcode == 5)
         {
-            tmpresult = ALU(registerFile[rs], imm, 3);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 3);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 3);
+            }else
+                tmpresult = ALU(registerFile[rs], imm, 3);
         }
         else if (opcode == 6)
         {
-            tmpresult = ALU(registerFile[rs], imm, 4);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 4);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 4);
+            }else
+                tmpresult = ALU(registerFile[rs], imm, 4);
         }
         else if (opcode == 7)
         {
         }
         else if (opcode == 8)
         {
-            tmpresult = ALU(registerFile[rs], shamt, 5);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, shamt, 5);
+                else
+                    tmpresult = ALU(*EXMEM, shamt, 5);
+            }else
+                tmpresult = ALU(registerFile[rs], shamt, 5);
         }
         else if (opcode == 9)
         {
-            tmpresult = ALU(registerFile[rs], shamt, 6);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, shamt, 6);
+                else
+                    tmpresult = ALU(*EXMEM, shamt, 6);
+            }else
+                tmpresult = ALU(registerFile[rs], shamt, 6);
         }
         else if (opcode == 10)
         {
-            tmpresult = ALU(registerFile[rs], imm, 0);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 0);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 0);
+            }
+            else
+                tmpresult = ALU(registerFile[rs], imm, 0);
         }
         else
         {
-            tmpresult = ALU(registerFile[rs], imm, 0);
+            if(*(EXMEM+4) == rs){
+                if(*(EXMEM+2))
+                    tmpresult = ALU(*MEMWB, imm, 0);
+                else
+                    tmpresult = ALU(*EXMEM, imm, 0);
+            }else
+                tmpresult = ALU(registerFile[rs], imm, 0);
         }
         *(temparr2) = tmpresult;
         printf("Execute output : ALU result=%i\n", tmpresult);
