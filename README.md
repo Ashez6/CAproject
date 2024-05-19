@@ -1,2 +1,2 @@
 # CAproject
-CSEN601 project
+Conducted a simulation to the Von Neumann computer architecture that includes pipelining using C
